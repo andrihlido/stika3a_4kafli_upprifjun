@@ -1,1 +1,0 @@
-# stika3a_4kafli_upprifjun
