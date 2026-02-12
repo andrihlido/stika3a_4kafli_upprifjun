@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stika 3a - Kafli 4: Rúmfræði</title>
+    
+    <!-- Sækjum React og Tailwind af netinu -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fadeIn { animation: fadeIn 0.5s ease-out; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 to-blue-100 min-h-screen font-sans text-slate-800">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- TÁKN (ICONS) ---
+        const Icons = {
+            Cube: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>,
+            Angle: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18"></path><path d="M5 21l7-14"></path></svg>,
+            Circle: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="12" x2="12" y2="2"></line></svg>,
+            Scale: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>,
+            Play: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
+            Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>,
+            X: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>,
+            Trophy: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 21h8"></path><path d="M12 17v4"></path><path d="M7 4h10"></path><path d="M17 4v3a5 5 0 0 1-10 0V4"></path><path d="M17 4a5 5 0 0 0 4 4v2a5 5 0 0 1-10 0V8"></path><path d="M7 4a5 5 0 0 1-4 4v2a5 5 0 0 0 10 0V8"></path></svg>,
+            Refresh: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>,
+            ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        };
+
+        // --- GÖGN BYGGÐ Á LÝSINGU 4. KAFLA ---
+        const questionsData = [
+            // 1. GRANNHORN (REIKNINGUR)
+            {
+                id: 1, topic: "Grannhorn", type: "visual-line-angle",
+                question: "Horn A og B eru grannhorn (liggja saman á beinni línu). Ef horn A er 120°, hve stórt er horn B?",
+                visualData: { angle: 120, label: "A" },
+                options: ["120°", "90°", "60°", "180°"],
+                correctIndex: 2,
+                explanation: "Grannhorn mynda saman beina línu sem er 180°. \n180° - 120° = 60°.",
+                icon: <Icons.Angle />
+            },
+            // 2. TOPPHORN
+            {
+                id: 2, topic: "Topphorn", type: "multiple-choice",
+                question: "Tvær línur skerast og mynda X. Eitt hornið er 50°. Hve stórt er topphornið (hornið beint á móti)?",
+                options: ["50°", "130°", "100°", "90°"],
+                correctIndex: 0,
+                explanation: "Topphorn eru alltaf jafn stór. Ef eitt er 50° þá er hornið á móti líka 50°.",
+                icon: <Icons.Angle />
+            },
+            // 3. HRINGURINN
+            {
+                id: 3, topic: "Hringur", type: "multiple-choice",
+                question: "Í hve margar gráður er hring skipt (heill hringur)?",
+                options: ["180°", "360°", "90°", "100°"],
+                correctIndex: 1,
+                explanation: "Heill hringur er alltaf 360 gráður.",
+                icon: <Icons.Circle />
+            },
+            // 4. TEIKNING 60 GRÁÐUR
+            {
+                id: 4, topic: "Að teikna horn", type: "multiple-choice",
+                question: "Hvaða form er best að teikna til að búa til nákvæmlega 60° horn?",
+                options: ["Jafnarma þríhyrning", "Jafnhliða þríhyrning", "Rétthyrning", "Hring"],
+                correctIndex: 1,
+                explanation: "Í jafnhliða þríhyrningi eru öll hornin jafn stór. \n180° : 3 = 60°.",
+                icon: <Icons.Angle />
+            },
+            // 5. TEIKNING 90 GRÁÐUR
+            {
+                id: 5, topic: "Að teikna horn", type: "multiple-choice",
+                question: "Hvernig er hægt að teikna 90° horn út frá beinni línu (180°) án gráðuboga?",
+                options: ["Með því að helminga 180° hornið", "Með því að þrískipta línunni", "Það er ekki hægt"],
+                correctIndex: 0,
+                explanation: "Bein lína er 180°. Ef þú helmingar hornið (deilir í tvennt) færðu 90° (rétt horn).",
+                icon: <Icons.Angle />
+            },
+            // 6. EINSLÖGUN (MÆLIKVARÐI)
+            {
+                id: 6, topic: "Einslögun", type: "input",
+                question: "Tveir þríhyrningar eru einslaga. Hlið á minni myndinni er 4 cm. Stærri myndin er þreföldun af þeirri minni (mælikvarði 1:3). Hve löng er hliðin á stærri myndinni?",
+                acceptedAnswers: ["12", "12 cm"],
+                explanation: "Þar sem stærri myndin er þreföld þurfum við að margfalda með 3. \n4 cm · 3 = 12 cm.",
+                icon: <Icons.Scale />
+            },
+            // 7. ALJÖFN FORM
+            {
+                id: 7, topic: "Aljöfn form", type: "multiple-choice",
+                question: "Hvað þýðir það ef tvö form eru 'aljöfn' (kongrúent)?",
+                options: ["Að þau séu eins í laginu en misstór", "Að þau séu nákvæmlega eins í laginu og jafn stór", "Að þau hafi sama ummál en ólíkt lag"],
+                correctIndex: 1,
+                explanation: "Aljöfn form eru nákvæmlega eins. Þau falla alveg ofan í hvort annað.",
+                icon: <Icons.Cube />
+            },
+            // 8. HORNASUMMA ÞRÍHYRNINGS
+            {
+                id: 8, topic: "Marghyrningar", type: "input",
+                question: "Í þríhyrningi eru tvö hornin 50° og 60°. Hve stórt er þriðja hornið?",
+                acceptedAnswers: ["70", "70°"],
+                explanation: "Hornasumma þríhyrnings er alltaf 180°. \n50° + 60° = 110°. \n180° - 110° = 70°.",
+                icon: <Icons.Angle />
+            },
+            // 9. HEITI Í HRING
+            {
+                id: 9, topic: "Hringur", type: "multiple-choice",
+                question: "Hvað kallast línan sem liggur frá miðju hrings og út í jaðarinn?",
+                options: ["Þvermál", "Geisli (radíus)", "Ummál", "Bogi"],
+                correctIndex: 1,
+                explanation: "Geisli (radíus) er vegalengdin frá miðju út í jaðar.",
+                icon: <Icons.Circle />
+            },
+            // 10. MARGHYRNINGAR
+            {
+                id: 10, topic: "Marghyrningar", type: "multiple-choice",
+                question: "Hver er hornasumma ferhyrnings?",
+                options: ["180°", "270°", "360°", "400°"],
+                correctIndex: 2,
+                explanation: "Hægt er að skipta ferhyrningi í tvo þríhyrninga. 2 · 180° = 360°.",
+                icon: <Icons.Cube />
+            }
+        ];
+
+        // --- LEIKURINN (React Component) ---
+        function GeometryGame() {
+            const [gameState, setGameState] = useState('start');
+            const [currentQIndex, setCurrentQIndex] = useState(0);
+            const [score, setScore] = useState(0);
+            const [inputAnswer, setInputAnswer] = useState('');
+            const [selectedOption, setSelectedOption] = useState(null);
+            const [showFeedback, setShowFeedback] = useState(false);
+            const [isCorrect, setIsCorrect] = useState(false);
+            const [questions, setQuestions] = useState([]);
+
+            useEffect(() => {
+                setQuestions([...questionsData].sort(() => 0.5 - Math.random()));
+            }, []);
+
+            const startGame = () => {
+                setQuestions([...questionsData].sort(() => 0.5 - Math.random()));
+                setGameState('playing');
+                setCurrentQIndex(0);
+                setScore(0);
+                resetState();
+            };
+
+            const resetState = () => {
+                setInputAnswer('');
+                setSelectedOption(null);
+                setShowFeedback(false);
+                setIsCorrect(false);
+            };
+
+            const checkInput = (user, correct) => {
+                if(!user) return false;
+                const norm = (s) => s.toLowerCase().replace(/°|cm|m|\s/g, '').replace(/,/g, '.');
+                return correct.some(c => norm(user) === norm(c));
+            };
+
+            const submit = () => {
+                const q = questions[currentQIndex];
+                let correct = false;
+                if(q.type === 'input') correct = checkInput(inputAnswer, q.acceptedAnswers);
+                else correct = selectedOption === q.correctIndex;
+
+                setIsCorrect(correct);
+                if(correct) setScore(s => s + 1);
+                setShowFeedback(true);
+            };
+
+            const next = () => {
+                if(currentQIndex < questions.length - 1) {
+                    setCurrentQIndex(prev => prev + 1);
+                    resetState();
+                } else {
+                    setGameState('finished');
+                }
+            };
+
+            if(questions.length === 0) return null;
+            const q = questions[currentQIndex];
+
+            // START SCREEN
+            if(gameState === 'start') return (
+                <div className="flex flex-col items-center justify-center min-h-screen p-4">
+                    <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-lg w-full text-center animate-fadeIn">
+                        <div className="w-28 h-28 bg-indigo-500 rounded-3xl rotate-6 flex items-center justify-center mx-auto mb-8 shadow-indigo-200 shadow-xl">
+                            <div className="text-white"><Icons.Angle /></div>
+                        </div>
+                        <h1 className="text-4xl font-extrabold text-slate-800 mb-2">Kafli 4</h1>
+                        <h2 className="text-xl text-indigo-600 font-bold mb-6">Rúmfræði: Horn og einslögun</h2>
+                        <p className="text-slate-600 mb-8">Æfðu þig í grannhornum, topphornum, hringjum, teiknireglum og einslögun.</p>
+                        <button onClick={startGame} className="bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold py-4 px-10 rounded-2xl shadow-xl transition-transform transform hover:-translate-y-1 active:scale-95 flex items-center justify-center mx-auto">
+                            <span className="mr-3"><Icons.Play /></span> Byrja Leik
+                        </button>
+                    </div>
+                </div>
+            );
+
+            // FINISHED SCREEN
+            if(gameState === 'finished') return (
+                <div className="flex flex-col items-center justify-center min-h-screen p-4">
+                    <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-lg w-full text-center animate-fadeIn">
+                        <div className="w-32 h-32 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-8">
+                            <div className="text-yellow-600"><Icons.Trophy /></div>
+                        </div>
+                        <h2 className="text-3xl font-bold text-slate-800 mb-2">Æfingu Lokið!</h2>
+                        <div className="text-5xl font-black text-indigo-600 mb-4">{score} / {questions.length}</div>
+                        <button onClick={startGame} className="bg-white border-2 border-slate-200 hover:border-indigo-500 hover:text-indigo-600 text-slate-600 font-bold py-3 px-8 rounded-xl transition flex items-center justify-center mx-auto">
+                            <span className="mr-2"><Icons.Refresh /></span> Spila aftur
+                        </button>
+                    </div>
+                </div>
+            );
+
+            // PLAYING SCREEN
+            return (
+                <div className="flex flex-col items-center justify-center min-h-screen p-4">
+                    <div className="w-full max-w-2xl bg-white rounded-3xl shadow-xl overflow-hidden border border-indigo-100">
+                        {/* Progress */}
+                        <div className="bg-slate-100 h-2 w-full">
+                            <div className="bg-indigo-500 h-full transition-all duration-500" style={{width: `${(currentQIndex / questions.length) * 100}%`}}></div>
+                        </div>
+                        
+                        {/* Header */}
+                        <div className="px-6 py-4 flex justify-between items-center border-b border-slate-100">
+                            <div className="text-sm font-bold text-slate-400 uppercase">Dæmi {currentQIndex + 1} / {questions.length}</div>
+                            <div className="flex items-center space-x-2 bg-indigo-50 px-3 py-1 rounded-full text-indigo-700 font-bold text-sm">
+                                <span>{score} stig</span>
+                            </div>
+                        </div>
+
+                        <div className="p-6 md:p-10">
+                            {/* Topic */}
+                            <div className="flex justify-center mb-6">
+                                <div className="inline-flex items-center space-x-2 bg-slate-100 px-4 py-1.5 rounded-full text-sm font-semibold text-slate-600">
+                                    <span className="text-indigo-500">{q.icon}</span>
+                                    <span>{q.topic}</span>
+                                </div>
+                            </div>
+
+                            {/* Question */}
+                            <h2 className="text-2xl font-bold text-center text-slate-800 mb-8">{q.question}</h2>
+
+                            {/* --- VISUALS --- */}
+                            
+                            {/* Visual: Grannhorn (Supplementary Angles) */}
+                            {q.type === 'visual-line-angle' && (
+                                <div className="mb-8 flex justify-center items-end h-32">
+                                    <svg width="240" height="120">
+                                        {/* Straight line */}
+                                        <line x1="20" y1="100" x2="220" y2="100" stroke="#475569" strokeWidth="3" />
+                                        {/* Angle line */}
+                                        <line x1="120" y1="100" x2="70" y2="20" stroke="#475569" strokeWidth="3" />
+                                        
+                                        {/* Angle Arc 1 (120 deg) */}
+                                        <path d="M 85 45 A 40 40 0 0 1 160 100" fill="none" stroke="#3b82f6" strokeWidth="2" strokeDasharray="4" />
+                                        <text x="130" y="80" fill="#3b82f6" fontWeight="bold">120°</text>
+
+                                        {/* Angle Arc 2 (Question) */}
+                                        <path d="M 120 100 A 30 30 0 0 0 95 60" fill="none" stroke="#ef4444" strokeWidth="2" />
+                                        <text x="90" y="90" fill="#ef4444" fontWeight="bold">B</text>
+                                    </svg>
+                                </div>
+                            )}
+
+                            {/* Inputs */}
+                            {q.type === 'input' && (
+                                <div className="mb-10 flex justify-center">
+                                    <input 
+                                        type="text" 
+                                        value={inputAnswer}
+                                        onChange={e => setInputAnswer(e.target.value)}
+                                        onKeyDown={e => {
+                                            if(e.key === 'Enter') {
+                                                if(!showFeedback && inputAnswer) submit();
+                                                else if(showFeedback) next();
+                                            }
+                                        }}
+                                        disabled={showFeedback}
+                                        placeholder="Skrifaðu svar..."
+                                        className={`w-full max-w-xs text-center text-2xl p-4 rounded-xl border-2 outline-none transition-all ${
+                                            showFeedback 
+                                            ? (isCorrect ? 'border-green-500 bg-green-50 text-green-800' : 'border-red-500 bg-red-50 text-red-800')
+                                            : 'border-slate-300 focus:border-indigo-500'
+                                        }`}
+                                        autoFocus
+                                    />
+                                </div>
+                            )}
+
+                            {(q.type === 'multiple-choice' || q.type === 'visual-line-angle') && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+                                    {q.options.map((opt, idx) => {
+                                        let cls = "border-slate-200 hover:border-indigo-400 text-slate-700";
+                                        if(selectedOption === idx) cls = "border-indigo-500 bg-indigo-50 text-indigo-900";
+                                        if(showFeedback) {
+                                            if(idx === q.correctIndex) cls = "border-green-500 bg-green-100 text-green-900 font-bold";
+                                            else if(selectedOption === idx) cls = "border-red-500 bg-red-100 text-red-900 opacity-70";
+                                            else cls = "border-slate-100 text-slate-400 opacity-50";
+                                        }
+                                        return (
+                                            <button key={idx} onClick={() => !showFeedback && setSelectedOption(idx)} disabled={showFeedback}
+                                                className={`p-4 rounded-xl text-lg font-medium border-2 transition-all text-left flex justify-between items-center ${cls}`}>
+                                                {opt}
+                                                {showFeedback && idx === q.correctIndex && <span className="text-green-600"><Icons.Check /></span>}
+                                                {showFeedback && selectedOption === idx && idx !== q.correctIndex && <span className="text-red-500"><Icons.X /></span>}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Action Bar */}
+                            <div className="flex justify-center md:justify-end">
+                                {!showFeedback ? (
+                                    <button onClick={submit} disabled={q.type === 'input' ? !inputAnswer : selectedOption === null}
+                                        className={`px-8 py-3 rounded-xl font-bold text-white text-lg transition-all shadow-lg ${
+                                            (q.type === 'input' ? inputAnswer : selectedOption !== null) 
+                                            ? 'bg-indigo-600 hover:bg-indigo-700 hover:-translate-y-1' 
+                                            : 'bg-slate-300 cursor-not-allowed'
+                                        }`}>
+                                        Svara
+                                    </button>
+                                ) : (
+                                    <button onClick={next} autoFocus className="px-8 py-3 rounded-xl font-bold text-white text-lg bg-slate-800 hover:bg-slate-900 shadow-lg flex items-center hover:-translate-y-1 transition-all">
+                                        <span>{currentQIndex < questions.length - 1 ? "Næsta" : "Ljúka"}</span>
+                                        <span className="ml-2"><Icons.ArrowRight /></span>
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Feedback */}
+                            {showFeedback && (
+                                <div className={`mt-8 p-6 rounded-2xl animate-fadeIn ${isCorrect ? 'bg-green-50' : 'bg-red-50'}`}>
+                                    <div className="flex gap-4">
+                                        <div className={`p-2 rounded-full h-fit ${isCorrect ? 'bg-green-200 text-green-700' : 'bg-red-200 text-red-700'}`}>
+                                            {isCorrect ? <Icons.Check /> : <Icons.X />}
+                                        </div>
+                                        <div>
+                                            <h3 className={`font-bold text-lg ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>{isCorrect ? 'Rétt!' : 'Því miður...'}</h3>
+                                            <p className="text-slate-700 mt-1 whitespace-pre-line">{q.explanation}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<GeometryGame />);
+    </script>
+</body>
+</html>
